@@ -5,21 +5,27 @@ import mtgsdk as mtg
 text = pd.read_csv(r'c:\Data investigations\mtgo games 2.csv', header=-1)
 
 # generate a list of start and end points (by line) in the mtgo text output that use 'player_name joined the game' as the indicators for when a new game starts.
+# The function generates an empty list game_sections. This eventualy be populated into a list of lists of the form [start.1,end.1],[start.2,end.2],etc.
+# All games start with (player A has joined the game / Player B has joined the game) on two subsequent lines
+# The function uses the 'joined the game' string to identify a new game occurance (first if check skips the second line of the pair (player B)
+# Then it appends the ith line start /stop into the game_sections list.
 
-game_sections = []
-start_game_sec = 0
-for i in range(0,len(text2)):
+def Logtogamesec (textinput):
+    game_sections = []
+    start_game_sec = 0
+    for i in range(0,len(textinput)):
 
-     stringit = text2.iloc[i]
-     if ('joined the game.' in text2.iloc[i-1][0]): 
-         continue
-     
-     if ('joined the game.' in stringit[0]): 
-         game_sections = game_sections+[[start_game_sec, i ]] 
-         start_game_sec = i
-     if i==(len(text2)-1):
-         game_sections = game_sections+[[start_game_sec, i ]] 
-         start_game_sec = i
+         stringit = textinput.iloc[i]
+         if ('joined the game.' in textinput.iloc[i-1][0]): 
+             continue
+
+         if ('joined the game.' in stringit[0]): 
+             game_sections = game_sections+[[start_game_sec, i ]] 
+             start_game_sec = i
+         if i==(len(textinput)-1):
+             game_sections = game_sections+[[start_game_sec, i ]] 
+             start_game_sec = i
+    return(game_sections)
 
 #Identifying the players name, this should be the first two lines from the mtgo text readout which is one line for each players die roll
 string1= text.iloc[0][0]
