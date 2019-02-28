@@ -5,27 +5,21 @@ import mtgsdk as mtg
 text = pd.read_csv(r'c:\Data investigations\mtgo games 2.csv', header=-1)
 
 # generate a list of start and end points (by line) in the mtgo text output that use 'player_name joined the game' as the indicators for when a new game starts.
-# The function generates an empty list game_sections. This eventualy be populated into a list of lists of the form [start.1,end.1],[start.2,end.2],etc.
-# All games start with (player A has joined the game / Player B has joined the game) on two subsequent lines
-# The function uses the 'joined the game' string to identify a new game occurance (first if check skips the second line of the pair (player B)
-# Then it appends the ith line start /stop into the game_sections list.
 
-def Logtogamesec (textinput):
-    game_sections = []
-    start_game_sec = 0
-    for i in range(0,len(textinput)):
+game_sections = []
+start_game_sec = 0
+for i in range(3,len(text2)):
 
-         stringit = textinput.iloc[i]
-         if ('joined the game.' in textinput.iloc[i-1][0]): 
-             continue
-
-         if ('joined the game.' in stringit[0]): 
-             game_sections = game_sections+[[start_game_sec, i ]] 
-             start_game_sec = i
-         if i==(len(textinput)-1):
-             game_sections = game_sections+[[start_game_sec, i ]] 
-             start_game_sec = i
-    return(game_sections)
+     stringit = text2.iloc[i]
+     if ('joined the game.' in text2.iloc[i-1][0]): 
+         continue
+     
+     if ('joined the game.' in stringit[0]): 
+         game_sections = game_sections+[[start_game_sec, i ]] 
+         start_game_sec = i
+     if i==(len(text2)-1):
+         game_sections = game_sections+[[start_game_sec, i ]] 
+         start_game_sec = i
 
 #Identifying the players name, this should be the first two lines from the mtgo text readout which is one line for each players die roll
 string1= text.iloc[0][0]
@@ -115,9 +109,9 @@ game_summ_df = game_summ_df.merge(cardbase[['name','cmc']], how='left', left_on=
 
 #Generate the cmc only dataframe with win/loss as categorical variable from the game summary df. 20 turns assumed 
 
-index = ['player1','player2']
+index = ['player1','player2','Diff','CumalativeDiff']
 columns = list(range(1,21))
-cmc_summ_df = pd.DataFrame(index=index, columns=columns
+cmc_summ_df = pd.DataFrame(index=index, columns=columns)
                            
 def cmc_by_turns ( player, turn ):
     if player == 'player1':
@@ -127,11 +121,19 @@ def cmc_by_turns ( player, turn ):
         turn_cmc = gamedf[gamedf.p2turn== turn].p2cmc.sum()
         return turn_cmc                           
 
+max_turns=20
+
+totaldiff=0
+for i in range(0,20):
+    totaldiff=cmc_summ_df.loc['Diff'][i]+totaldiff
+    cmc_summ_df.loc['CumalativeDiff'][i]=totaldiff
+
+cmc_summ_df
 
 for seq in cmcdf.index:
-    for seq2 in cmcdf.columns:
+    for seq2 in range(1,max_turns+1):
         cmcdf.loc[seq, seq2] = cmc_by_turns(player=seq, turn=seq2)
 
 #fill the outcome variable win column of the cmc only df with the first non 0 value in p1win/p2win from game summ df (expecting 0 for all rows until the victor decided row from input text (concedes line)                           
 cmcdf.loc['player1','win']=gamedf.p1win[gamedf.p1win.ne(0).idxmax()]                     
-cmcdf.loc['player2','win']=gamedf.p2win[gamedf.p2win.ne(0).idxmax()]      
+cmcdf.loc['player2','win']=gamedf.p2win[gamedf.p2win.ne(0).idxmax()]   
