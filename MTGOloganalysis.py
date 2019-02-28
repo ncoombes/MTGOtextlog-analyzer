@@ -30,10 +30,6 @@ string2= text.iloc[1][0]
 startofname2= string1.find(":",4)+2
 player2= string2[startofname2:(string2.find(" ",startofname2))]
 
-print(player1, player2)
-#string.find(":")
-
-print('asdfe'.find('e'))
 
 columnheads= ['p1turn','p2turn','p1land','p2land','p1spell','p2spell']
 game_as_df = pd.DataFrame(columns=columheads)
